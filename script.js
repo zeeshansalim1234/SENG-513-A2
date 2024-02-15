@@ -146,16 +146,16 @@ async function startQuiz() {
       submitBtn.style.display = 'block';
   }
 
-  submitBtn.onclick = () => {
-      const selectedChoice = document.querySelector('input[name="choice"]:checked');
-      if (selectedChoice) {
-          quiz.submitAnswer(selectedChoice.value);
-          scoreElement.textContent = quiz.score;
-          displayCurrentQuestion(); // Refresh to show next question or end quiz
-      } else {
-          alert('Please select an answer.');
-      }
-  };
+  submitBtn.onclick = function() {
+    const selectedChoice = document.querySelector('input[name="choice"]:checked');
+    if (selectedChoice) {
+        this.submitAnswer(selectedChoice.value); // `this` is bound to `quiz`
+        scoreElement.textContent = this.score; // `this` refers to `quiz`
+        displayCurrentQuestion(); // Refresh to show next question or end quiz
+    } else {
+        alert('Please select an answer.');
+    }
+  }.bind(quiz); // This ensures `this` within the function refers to `quiz`
 
   // Initial display
   displayCurrentQuestion();
