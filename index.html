@@ -18,7 +18,7 @@
         <p>Score: <span id="score">0</span></p>
     </div>
     <button id="submit-btn">Submit Answer</button>
-    <button id="next-btn">Next Question</button>
+    <button id="next-btn" style="display: none;">Next Question</button>
 </div>
 
 <script>
@@ -36,123 +36,154 @@ class Question {
 
 class Quiz {
     constructor(questions) {
-        this.questions = questions;
-        this.currentIndex = 0;
+        this.questionsByDifficulty = { 'easy': [], 'medium': [], 'hard': [] };
+        questions.forEach(question => {
+            this.questionsByDifficulty[question.difficulty].push(new Question(question.question, question.choices, question.correctAnswer));
+        });
+
+        this.difficulties = ['easy', 'medium', 'hard']; // Define an array to easily navigate between difficulties
+        this.currentDifficultyIndex = 0; // Use an index to track the current difficulty level
         this.score = 0;
-        this.currentDifficulty = 'easy'; // Start from 'easy' difficulty
+        this.totalQuestionsAttempted = 0;
+        this.totalQuestions = questions.length;
     }
 
     getCurrentQuestion() {
-        // Filter questions by current difficulty and get the next question
-        const questionsByDifficulty = this.questions.filter(question => question.difficulty === this.currentDifficulty);
-        return questionsByDifficulty[this.currentIndex % questionsByDifficulty.length];
+        // Try to get a question from the current difficulty level
+        while (this.currentDifficultyIndex < this.difficulties.length) {
+            const difficulty = this.difficulties[this.currentDifficultyIndex];
+            if (this.questionsByDifficulty[difficulty].length > 0) {
+                return this.questionsByDifficulty[difficulty][0];
+            } else {
+                // If no questions left in the current difficulty, attempt to move to the next available difficulty
+                this.currentDifficultyIndex++; // Move to the next difficulty
+            }
+        }
+        return null; // No more questions available
     }
 
     submitAnswer(answer) {
         const currentQuestion = this.getCurrentQuestion();
-        if (currentQuestion.checkAnswer(answer)) {
-            this.score++;
-            // Logic to increase difficulty if answer is correct
-            if (this.currentDifficulty === 'easy') {
-                this.currentDifficulty = 'medium';
-            } else if (this.currentDifficulty === 'medium') {
-                this.currentDifficulty = 'hard';
+        if (currentQuestion) {
+            const wasCorrect = currentQuestion.checkAnswer(answer);
+            if (wasCorrect) {
+                this.score++;
+            }
+            // Remove the answered question and adjust difficulty
+            const currentDifficulty = this.difficulties[this.currentDifficultyIndex];
+            this.questionsByDifficulty[currentDifficulty].shift(); // Remove the first question
+            this.adjustDifficulty(wasCorrect);
+            this.totalQuestionsAttempted++;
+        }
+    }
+
+    adjustDifficulty(correct) {
+        if (correct) {
+            // Only attempt to increase difficulty if not at the highest level
+            if (this.currentDifficultyIndex < this.difficulties.length - 1) {
+                this.currentDifficultyIndex++;
             }
         } else {
-            // Optionally, decrease difficulty or keep the same
+            // Only decrease difficulty if not at the easiest level
+            if (this.currentDifficultyIndex > 0) {
+                this.currentDifficultyIndex--;
+            }
         }
-        // Move to the next question index globally, not just within the current difficulty
-        this.currentIndex++;
+        // After adjusting difficulty, check if the new difficulty has questions. If not, find the next available difficulty with questions.
+        this.findNextAvailableDifficulty();
+    }
+
+    findNextAvailableDifficulty() {
+        // Check if current difficulty has questions
+        if (this.questionsByDifficulty[this.difficulties[this.currentDifficultyIndex]].length === 0) {
+            // Look for the next available difficulty with questions
+            let foundQuestions = false;
+            for (let i = 0; i < this.difficulties.length; i++) {
+                if (this.questionsByDifficulty[this.difficulties[i]].length > 0) {
+                    this.currentDifficultyIndex = i;
+                    foundQuestions = true;
+                    break;
+                }
+            }
+            if (!foundQuestions) {
+                this.currentDifficultyIndex = this.difficulties.length; // No questions available in any difficulty
+            }
+        }
     }
 
     hasEnded() {
-        // Assuming a fixed number of questions for the quiz to end
-        return this.currentIndex >= this.questions.length;
+        return this.totalQuestionsAttempted >= this.totalQuestions;
     }
 }
 
 
 async function fetchQuestions() {
-    // Fetch the questions from an API or define them here
     const response = await fetch('https://opentdb.com/api.php?amount=10&type=multiple');
     const data = await response.json();
-    return data.results;
+    return data.results.map(q => ({
+        question: q.question,
+        choices: [...q.incorrect_answers, q.correct_answer],
+        correctAnswer: q.correct_answer,
+        difficulty: q.difficulty // Assumed difficulty is provided and mapped correctly to 'easy', 'medium', 'hard'
+    }));
 }
 
 async function startQuiz() {
-    const fetchedQuestions = await fetchQuestions();
-    // Transform fetched questions to match the expected format
-    const questions = fetchedQuestions.map(q => ({
-        question: q.question,
-        choices: [...q.incorrect_answers, q.correct_answer].sort(() => 0.5 - Math.random()), // Mix correct and incorrect answers
-        correctAnswer: q.correct_answer
-    }));
+    const questions = await fetchQuestions();
+    console.log(questions)
     const quiz = new Quiz(questions);
 
     const questionElement = document.getElementById('question');
     const choicesForm = document.getElementById('choices-form');
     const submitBtn = document.getElementById('submit-btn');
     const nextBtn = document.getElementById('next-btn');
-
-    // Initially hide the next button
-    nextBtn.style.display = 'none';
+    const scoreElement = document.getElementById('score');
 
     function displayCurrentQuestion() {
         const currentQuestion = quiz.getCurrentQuestion();
-        questionElement.innerHTML = decodeEntities(currentQuestion.question);
         console.log(currentQuestion)
-
-        // Clear previous choices
-        choicesForm.innerHTML = '';
-
-        // Populate choices
-        currentQuestion.choices.forEach(choice => {
-            const choiceInput = document.createElement('input');
-            choiceInput.type = 'radio';
-            choiceInput.name = 'choice';
-            choiceInput.id = choice;
-            choiceInput.value = choice;
-            const choiceLabel = document.createElement('label');
-            choiceLabel.setAttribute('for', choice);
-            choiceLabel.textContent = decodeEntities(choice);
-            choicesForm.appendChild(choiceInput);
-            choicesForm.appendChild(choiceLabel);
-            choicesForm.appendChild(document.createElement('br'));
-        });
-    }
-
-    function handleAnswerSubmission() {
-        const selectedChoice = document.querySelector('input[name="choice"]:checked');
-        if (selectedChoice) {
-            quiz.submitAnswer(selectedChoice.value);
-            submitBtn.style.display = 'none'; // Hide submit button after answer submission
-            nextBtn.style.display = 'block'; // Show next button to proceed
-        } else {
-            alert('Please select an answer.');
-        }
-    }
-
-    function moveToNextQuestion() {
-        if (!quiz.hasEnded()) {
-            displayCurrentQuestion();
-            submitBtn.style.display = 'block'; // Show submit button for the new question
-            nextBtn.style.display = 'none'; // Hide next button until answer is submitted
-        } else {
+        if (!currentQuestion) {
             questionElement.textContent = 'Quiz ended! Your score: ' + quiz.score;
             choicesForm.innerHTML = '';
             submitBtn.style.display = 'none';
             nextBtn.style.display = 'none';
+            return;
         }
+
+        questionElement.innerHTML = decodeEntities(currentQuestion.question);
+        choicesForm.innerHTML = ''; // Clear previous choices
+
+        currentQuestion.choices.forEach((choice, index) => {
+            const choiceInput = document.createElement('input');
+            choiceInput.type = 'radio';
+            choiceInput.name = 'choice';
+            choiceInput.id = 'choice' + index;
+            choiceInput.value = choice;
+            const choiceLabel = document.createElement('label');
+            choiceLabel.setAttribute('for', 'choice' + index);
+            choiceLabel.innerHTML = decodeEntities(choice);
+            choicesForm.appendChild(choiceInput);
+            choicesForm.appendChild(choiceLabel);
+            choicesForm.appendChild(document.createElement('br'));
+        });
+
+        submitBtn.style.display = 'block';
     }
 
-    submitBtn.addEventListener('click', handleAnswerSubmission);
-    nextBtn.addEventListener('click', moveToNextQuestion);
+    submitBtn.onclick = () => {
+        const selectedChoice = document.querySelector('input[name="choice"]:checked');
+        if (selectedChoice) {
+            quiz.submitAnswer(selectedChoice.value);
+            scoreElement.textContent = quiz.score;
+            displayCurrentQuestion(); // Refresh to show next question or end quiz
+        } else {
+            alert('Please select an answer.');
+        }
+    };
 
-    // Display the first question
+    // Initial display
     displayCurrentQuestion();
 }
-
-
 
 function decodeEntities(encodedString) {
     const textArea = document.createElement('textarea');
@@ -160,7 +191,6 @@ function decodeEntities(encodedString) {
     return textArea.value;
 }
 
-// Call startQuiz to run the quiz
 startQuiz();
 </script>
 </body>
