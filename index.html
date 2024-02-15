@@ -36,27 +36,41 @@ class Question {
 
 class Quiz {
     constructor(questions) {
-        this.questions = questions.map(q => new Question(q.question, q.choices, q.correctAnswer));
+        this.questions = questions;
         this.currentIndex = 0;
         this.score = 0;
+        this.currentDifficulty = 'easy'; // Start from 'easy' difficulty
     }
 
     getCurrentQuestion() {
-        return this.questions[this.currentIndex];
+        // Filter questions by current difficulty and get the next question
+        const questionsByDifficulty = this.questions.filter(question => question.difficulty === this.currentDifficulty);
+        return questionsByDifficulty[this.currentIndex % questionsByDifficulty.length];
     }
 
     submitAnswer(answer) {
-        if (this.getCurrentQuestion().checkAnswer(answer)) {
+        const currentQuestion = this.getCurrentQuestion();
+        if (currentQuestion.checkAnswer(answer)) {
             this.score++;
-            document.getElementById('score').textContent = this.score;
+            // Logic to increase difficulty if answer is correct
+            if (this.currentDifficulty === 'easy') {
+                this.currentDifficulty = 'medium';
+            } else if (this.currentDifficulty === 'medium') {
+                this.currentDifficulty = 'hard';
+            }
+        } else {
+            // Optionally, decrease difficulty or keep the same
         }
+        // Move to the next question index globally, not just within the current difficulty
         this.currentIndex++;
     }
 
     hasEnded() {
-        return this.currentIndex === this.questions.length;
+        // Assuming a fixed number of questions for the quiz to end
+        return this.currentIndex >= this.questions.length;
     }
 }
+
 
 async function fetchQuestions() {
     // Fetch the questions from an API or define them here
