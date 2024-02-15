@@ -12,16 +12,16 @@ class Question {
   
 class Quiz {
     constructor(questions) {
-        this.questions = questions.map(q => new Question(q.question, q.choices, q.correctAnswer));
+        this.questions = questions;
         this.currentIndex = 0;
         this.score = 0;
-        this.difficultyLevel = 1; // Added to track difficulty level
+        this.currentDifficulty = 'easy'; // Start from 'easy' difficulty
     }
 
     getCurrentQuestion() {
-        // Filter questions by current difficulty level
-        const filteredQuestions = this.questions.filter(q => q.difficulty === this.difficultyLevel);
-        return filteredQuestions[this.currentIndex % filteredQuestions.length];
+        // Filter questions by current difficulty and get the next question
+        const questionsByDifficulty = this.questions.filter(question => question.difficulty === this.currentDifficulty);
+        return questionsByDifficulty[this.currentIndex % questionsByDifficulty.length];
     }
 
     submitAnswer(answer) {
@@ -29,18 +29,21 @@ class Quiz {
         if (currentQuestion.checkAnswer(answer)) {
             this.score++;
             // Logic to increase difficulty if answer is correct
-            this.difficultyLevel = Math.min(this.difficultyLevel + 1, 3); // Assuming 3 difficulty levels
+            if (this.currentDifficulty === 'easy') {
+                this.currentDifficulty = 'medium';
+            } else if (this.currentDifficulty === 'medium') {
+                this.currentDifficulty = 'hard';
+            }
         } else {
-            // Logic to decrease difficulty if answer is wrong
-            this.difficultyLevel = Math.max(this.difficultyLevel - 1, 1);
+            // Optionally, decrease difficulty or keep the same
         }
-        // Ensure the quiz cycles through questions of the new difficulty level
+        // Move to the next question index globally, not just within the current difficulty
         this.currentIndex++;
     }
 
     hasEnded() {
         // Assuming a fixed number of questions for the quiz to end
-        return this.currentIndex === this.questions.length;
+        return this.currentIndex >= this.questions.length;
     }
 }
 
