@@ -45,7 +45,7 @@ class Quiz {
         // Assuming a fixed number of questions for the quiz to end
         return this.currentIndex >= this.questions.length;
     }
-}
+} 
 
 class User {
     constructor(username) {
