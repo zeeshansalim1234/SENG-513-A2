@@ -12,24 +12,35 @@ class Question {
   
 class Quiz {
     constructor(questions) {
-      this.questions = questions.map(q => new Question(q.question, [q.correct_answer, ...q.incorrect_answers], q.correct_answer));
-      this.currentIndex = 0;
-      this.score = 0;
+        this.questions = questions.map(q => new Question(q.question, q.choices, q.correctAnswer));
+        this.currentIndex = 0;
+        this.score = 0;
+        this.difficultyLevel = 1; // Added to track difficulty level
     }
-  
+
     getCurrentQuestion() {
-      return this.questions[this.currentIndex];
+        // Filter questions by current difficulty level
+        const filteredQuestions = this.questions.filter(q => q.difficulty === this.difficultyLevel);
+        return filteredQuestions[this.currentIndex % filteredQuestions.length];
     }
-  
+
     submitAnswer(answer) {
-      if (this.getCurrentQuestion().checkAnswer(answer)) {
-        this.score++;
-      }
-      this.currentIndex++;
+        const currentQuestion = this.getCurrentQuestion();
+        if (currentQuestion.checkAnswer(answer)) {
+            this.score++;
+            // Logic to increase difficulty if answer is correct
+            this.difficultyLevel = Math.min(this.difficultyLevel + 1, 3); // Assuming 3 difficulty levels
+        } else {
+            // Logic to decrease difficulty if answer is wrong
+            this.difficultyLevel = Math.max(this.difficultyLevel - 1, 1);
+        }
+        // Ensure the quiz cycles through questions of the new difficulty level
+        this.currentIndex++;
     }
-  
+
     hasEnded() {
-      return this.currentIndex === this.questions.length;
+        // Assuming a fixed number of questions for the quiz to end
+        return this.currentIndex === this.questions.length;
     }
 }
 
