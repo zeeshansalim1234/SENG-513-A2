@@ -7,42 +7,90 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-  }
-  #quiz-container {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 600px;
-  }
-  #question-container {
-    margin-bottom: 20px;
-  }
-  ol {
-    padding-left: 0;
-  }
-  li {
-    list-style: none; /* Remove default list styling */
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-  }
-  li label {
-    margin-left: 8px;
-  }
-  button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  button:hover {
-    background-color: #0056b3;
-  }
-  #score-container {
-    margin-bottom: 20px;
-  }
+}
+#quiz-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 600px;
+}
+
+ol {
+  padding-left: 0;
+}
+li {
+  list-style: none; /* Remove default list styling */
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+li label {
+  margin-left: 8px;
+}
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+button:hover {
+  background-color: #0056b3;
+}
+#score-container {
+  margin-bottom: 20px;
+}
+
+#username-container ,#question-container, #quiz-end-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  min-height: 300px;
+  font-size: 1.2em; /* Doubles the text size */
+  margin: 20px;
+}
+
+#quiz-end-container {
+  font-size: 1.5em;
+}
+
+#username-form {
+  display: flex;
+  flex-direction: column;
+  width: 60%;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+button {
+  width: 200px;
+}
+
+
+#username-input {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box; /* Ensure padding and border are included in width */
+}
+
+#choices-form {
+  display: block;
+}
+
+
+#history-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
