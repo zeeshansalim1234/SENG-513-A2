@@ -146,6 +146,7 @@ function restartQuiz(user){
     document.getElementById('question-container').style.display = 'flex';
     document.getElementById('score-history-btn').style.display = 'block';
     document.getElementById('score-history').style.display = 'none';
+    document.getElementById('score').textContent = '0';
     const choicesForm = document.getElementById('choices-form');
     choicesForm.innerHTML = '';
     const question = document.getElementById('question');
@@ -277,6 +278,4 @@ function initializeQuiz() {
     startQuiz(user)
 }
 
-
-// Add an event listener to the "Start Quiz" button
 document.getElementById('start-quiz-btn').addEventListener('click', initializeQuiz);
