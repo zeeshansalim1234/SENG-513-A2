@@ -244,13 +244,13 @@ async function startQuiz(user) {
     submitBtn.onclick = function () {
         const selectedChoice = document.querySelector('input[name="choice"]:checked');
         if (selectedChoice) {
-            quiz.submitAnswer(selectedChoice.value);
-            scoreElement.textContent = quiz.score;
+            this.submitAnswer(selectedChoice.value);
+            scoreElement.textContent = this.score;
             displayCurrentQuestion();
         } else {
             alert('Please select an answer.');
         }
-    };
+    }.bind(quiz);;
 
     // Initial display
     displayCurrentQuestion();
