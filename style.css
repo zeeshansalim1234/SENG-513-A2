@@ -45,7 +45,7 @@ button:hover {
   margin-bottom: 20px;
 }
 
-#username-container ,#question-container, #quiz-end-container {
+#username-container ,#question-container, #quiz-end-container{
   display: flex;
   justify-content: center;
   align-items: center;

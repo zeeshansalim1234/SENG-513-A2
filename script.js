@@ -130,35 +130,56 @@ async function fetchQuestions() {
         question: q.question,
         choices: [...q.incorrect_answers, q.correct_answer],
         correctAnswer: q.correct_answer,
-        difficulty: q.difficulty // Assumed difficulty is provided and mapped correctly to 'easy', 'medium', 'hard'
+        difficulty: q.difficulty 
     }));
 }
 
-// Function to initialize the quiz
-async function startQuiz() {
-    event.preventDefault();
-    const usernameInput = document.getElementById('username-input').value.trim();
-    console.log('Username input:', usernameInput);
-    // Check if username is entered
-    if (!usernameInput) {
-        alert('Please enter your username.');
-        return;
-    }
+function showQuiz() {
+    document.getElementById('username-container').style.display = 'none';
+    document.getElementById('username-container').style.display = 'none';
+    document.getElementById('question-container').style.display = 'flex';
+}
 
+function restartQuiz(user){
+    document.getElementById('username-container').style.display = 'none';
+    document.getElementById('quiz-end-container').style.display = 'none';
+    document.getElementById('question-container').style.display = 'flex';
+    document.getElementById('score-history-btn').style.display = 'block';
+    document.getElementById('score-history').style.display = 'none';
+    const choicesForm = document.getElementById('choices-form');
+    choicesForm.innerHTML = '';
+    const question = document.getElementById('question');
+    question.innerHTML = '';
+    document.getElementById('loding-question').style.display = 'block';
+
+    console.log("you clicked restart button");
+    startQuiz(user);
+}
+
+function displayQuiz(){
+    document.getElementById('username-container').style.display = 'none';
+    document.getElementById('quiz-end-container').style.display = 'none';
+    document.getElementById('question-container').style.display = 'flex';
+}
+
+function displayScoreHistory(){
+    document.getElementById('username-container').style.display = 'none';
+    document.getElementById('quiz-end-container').style.display = 'flex';
+    document.getElementById('question-container').style.display = 'none'; 
+}
+
+
+// Function to initialize the quiz
+async function startQuiz(user) {
     const questions = await fetchQuestions();
-    const user = new User(usernameInput);
+    document.getElementById('loding-question').style.display = 'none';
+    displayQuiz()
     const quiz = new Quiz(questions);
 
     const questionElement = document.getElementById('question');
     const choicesForm = document.getElementById('choices-form');
     const submitBtn = document.getElementById('submit-btn');
     const scoreElement = document.getElementById('score');
-    const nextBtn = document.getElementById('next-btn');
-
-    // Hide username container and show quiz container
-    document.getElementById('username-container').style.display = 'none';
-    document.getElementById('question-container').style.display = 'flex';
-
     const questionGenerator = quiz.generateQuestions();
 
     function displayCurrentQuestion() {
@@ -181,12 +202,8 @@ async function startQuiz() {
                 choicesForm.appendChild(document.createElement('br'));
             });
 
-            submitBtn.style.display = 'block';
         } else {
-            document.getElementById('username-container').style.display = 'none'; // Hide username container
-            document.getElementById('question-container').style.display = 'none'; // Hide question container
-            const quizEndContainer = document.getElementById('quiz-end-container');
-            quizEndContainer.style.display = 'flex'; // Show quiz end container
+            displayScoreHistory()
         
             // Display final score
             const finalScoreElement = document.getElementById('final-score');
@@ -197,7 +214,6 @@ async function startQuiz() {
         
             // Show score history button
             const scoreHistoryBtn = document.getElementById('score-history-btn');
-            scoreHistoryBtn.style.display = 'block';
         
             // Handle click event for score history button
             scoreHistoryBtn.addEventListener('click', function() {
@@ -208,10 +224,18 @@ async function startQuiz() {
                 // Display score history if available
                 const scores = user.getScoreHistory();
                 if (scores.length > 0) {
-                    scoreHistory.innerHTML = '<p>' + scores.join(', ') + '</p>';
+                    // Transform each score into a string with a label and the score value
+                    const scoresHtml = scores.map((score, index) => `Quiz ${index + 1} Score : ${score}`).join('<br>');
+                    scoreHistory.innerHTML = `<p>${scoresHtml}</p>`;
                 } else {
                     scoreHistory.innerHTML = '<p>No previous quiz scores.</p>';
                 }
+            });
+
+            const restartQuizButton = document.getElementById('restart-quiz-btn');
+            
+            restartQuizButton.addEventListener('click', function() {
+                restartQuiz(user);
             });
         }
     }
@@ -238,10 +262,21 @@ function decodeEntities(encodedString) {
 }
 
 
-function showScoreHistory(){
-    
+function initializeQuiz() { 
+    event.preventDefault();
+    const usernameInput = document.getElementById('username-input').value.trim();
+    console.log('Username input:', usernameInput);
+    // Check if username is entered
+    if (!usernameInput) {
+        alert('Please enter your username.');
+        return;
+    }
+
+    const user = new User(usernameInput);
+
+    startQuiz(user)
 }
 
 
 // Add an event listener to the "Start Quiz" button
-document.getElementById('start-quiz-btn').addEventListener('click', startQuiz);
+document.getElementById('start-quiz-btn').addEventListener('click', initializeQuiz);
