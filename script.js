@@ -69,20 +69,32 @@ class Quiz {
         return null; // No more questions available
     }
 
+    logAction(actionName, details) {
+        // Prepend the actionName to the details array for a complete message
+        const logArguments = [actionName].concat(details);
+        // Using apply() to pass an array of arguments to console.log
+        console.log.apply(console, logArguments);
+    }
+
     submitAnswer(answer) {
         const currentQuestion = this.getCurrentQuestion();
         if (currentQuestion) {
             const wasCorrect = currentQuestion.checkAnswer(answer);
             if (wasCorrect) {
                 this.score++;
+                // Using the logAction method to log this event with apply()
+                this.logAction('Answer Submitted:', ['Correct', 'Score: ' + this.score]);
+            } else {
+                // Similarly, for incorrect answers
+                this.logAction('Answer Submitted:', ['Incorrect', 'Score: ' + this.score]);
             }
-            // Remove the answered question and adjust difficulty
             const currentDifficulty = this.difficulties[this.currentDifficultyIndex];
-            this.questionsByDifficulty[currentDifficulty].shift(); // Remove the first question
+            this.questionsByDifficulty[currentDifficulty].shift();
             this.adjustDifficulty(wasCorrect);
             this.totalQuestionsAttempted++;
         }
     }
+    
 
     adjustDifficulty(correct) {
         if (correct) {
